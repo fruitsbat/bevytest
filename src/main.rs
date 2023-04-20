@@ -1,19 +1,16 @@
-use bevy::{asset::AssetPlugin, input::common_conditions::input_toggle_active, prelude::*};
-use bevy_embedded_assets::EmbeddedAssetPlugin;
+use bevy::{input::common_conditions::input_toggle_active, prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_mod_aseprite::{Aseprite, AsepriteAnimation, AsepriteBundle};
 use bevy_pixel_camera::{PixelCameraBundle, PixelCameraPlugin};
+pub mod animation;
+mod player;
 mod sprites;
 
 fn main() {
     App::new()
-        .add_plugins(
-            DefaultPlugins
-                .set(ImagePlugin::default_nearest())
-                .build()
-                .add_before::<AssetPlugin, _>(EmbeddedAssetPlugin),
-        )
+        .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()).build())
         .add_plugin(PixelCameraPlugin)
+        .add_plugin(animation::AnimationPlugin)
+        .add_plugin(player::PlayerPlugin)
         .add_plugin(
             WorldInspectorPlugin::default().run_if(input_toggle_active(false, KeyCode::F11)),
         )
@@ -22,19 +19,10 @@ fn main() {
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(PixelCameraBundle::from_resolution(128, 128));
-
-    let player_sprite: Handle<Aseprite> = asset_server.load(sprites::Player::PATH);
-    commands.spawn(Player).insert(AsepriteBundle {
-        aseprite: player_sprite,
-        animation: AsepriteAnimation::new(player_sprite.info()),
-        ..Default::default()
-    });
+fn setup(mut commands: Commands) {
+    debug!("setting up camera...");
+    commands.spawn(PixelCameraBundle::from_resolution(168, 168));
 }
-
-#[derive(Component)]
-struct Player;
 
 #[cfg(test)]
 mod tests {
